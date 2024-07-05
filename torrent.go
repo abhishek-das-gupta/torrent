@@ -330,16 +330,19 @@ func (t *Torrent) addPeer(p PeerInfo) (added bool) {
 	cl := t.cl
 	torrent.Add(fmt.Sprintf("peers added by source %q", p.Source), 1)
 	if t.closed.IsSet() {
+		t.logger.Levelf(log.Debug, "Torrent is closed. Hence %v not added", p.addr())
 		return false
 	}
 	if ipAddr, ok := tryIpPortFromNetAddr(p.Addr); ok {
 		if cl.badPeerIPPort(ipAddr.IP, ipAddr.Port) {
 			torrent.Add("peers not added because of bad addr", 1)
+			t.logger.Levelf(log.Debug, "Bad Ip %v and  port %v. Hence %v not added", ipAddr.IP, ipAddr.Port, p.addr())
 			// cl.logger.Printf("peers not added because of bad addr: %v", p)
 			return false
 		}
 	}
 	if replaced, ok := t.peers.AddReturningReplacedPeer(p); ok {
+		log.Levelf(log.Debug, "Peer retuning replaced %v", replaced)
 		torrent.Add("peers replaced", 1)
 		if !replaced.equal(p) {
 			t.logger.WithDefaultLevel(log.Debug).Printf("added %v replacing %v", p, replaced)
@@ -350,11 +353,14 @@ func (t *Torrent) addPeer(p PeerInfo) (added bool) {
 	}
 	t.openNewConns()
 	for t.peers.Len() > cl.config.TorrentPeersHighWater {
+		t.logger.Levelf(log.Debug, "t.peer.Len(): %d is greater than cl.config.TorrentPeersHighWater:%d",
+			t.peers.Len(), cl.config.TorrentPeersHighWater)
 		_, ok := t.peers.DeleteMin()
 		if ok {
 			torrent.Add("excess reserve peers discarded", 1)
 		}
 	}
+	t.logger.Levelf(log.Debug, "Final value of added: %v for peer %v", added, p.addr)
 	return
 }
 
