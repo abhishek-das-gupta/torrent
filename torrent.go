@@ -330,13 +330,13 @@ func (t *Torrent) addPeer(p PeerInfo) (added bool) {
 	cl := t.cl
 	torrent.Add(fmt.Sprintf("peers added by source %q", p.Source), 1)
 	if t.closed.IsSet() {
-		t.logger.Levelf(log.Debug, "Torrent is closed. Hence %v not added", p.addr())
+		t.logger.Levelf(log.Debug, "#Floodix: Torrent is closed. Hence %v not added", p.addr())
 		return false
 	}
 	if ipAddr, ok := tryIpPortFromNetAddr(p.Addr); ok {
 		if cl.badPeerIPPort(ipAddr.IP, ipAddr.Port) {
 			torrent.Add("peers not added because of bad addr", 1)
-			t.logger.Levelf(log.Debug, "Bad Ip %v and  port %v. Hence %v not added", ipAddr.IP, ipAddr.Port, p.addr())
+			t.logger.Levelf(log.Debug, "#Floodix: Bad Ip %v and  port %v. Hence %v not added", ipAddr.IP, ipAddr.Port, p.addr())
 			// cl.logger.Printf("peers not added because of bad addr: %v", p)
 			return false
 		}
@@ -353,14 +353,14 @@ func (t *Torrent) addPeer(p PeerInfo) (added bool) {
 	}
 	t.openNewConns()
 	for t.peers.Len() > cl.config.TorrentPeersHighWater {
-		t.logger.Levelf(log.Debug, "t.peer.Len(): %d is greater than cl.config.TorrentPeersHighWater:%d",
+		t.logger.Levelf(log.Debug, "#Floodix: t.peer.Len(): %d is greater than cl.config.TorrentPeersHighWater:%d",
 			t.peers.Len(), cl.config.TorrentPeersHighWater)
 		_, ok := t.peers.DeleteMin()
 		if ok {
 			torrent.Add("excess reserve peers discarded", 1)
 		}
 	}
-	t.logger.Levelf(log.Debug, "Final value of added: %v for peer %v", added, p.addr)
+	t.logger.Levelf(log.Debug, "#Floodix: Final value of added: %v for peer %v", added, p.addr)
 	return
 }
 
@@ -1158,7 +1158,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 			var sum metainfo.Hash
 			// log.Printf("A piece decided to self-hash: %d", piece)
 			sum, err = i.SelfHash()
+			t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1162...", p)
 			correct = sum == *p.hash
+			t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and *p.hash is: %v", correct, sum, *p.hash)
 			// Can't do smart banning without reading the piece. The smartBanCache is still cleared
 			// in pieceHasher regardless.
 			return
@@ -1182,7 +1184,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 		}
 		var sum [20]byte
 		sumExactly(sum[:], h.Sum)
+		t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1188...", p)
 		correct = sum == *p.hash
+		t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and *p.hash is: %v", correct, sum, *p.hash)
 	} else if p.hashV2.Ok {
 		h := merkle.NewHash()
 		differingPeers, err = t.hashPieceWithSpecificHash(piece, h)
@@ -1193,7 +1197,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 		sumExactly(sum[:], func(b []byte) []byte {
 			return h.SumMinLength(b, int(t.info.PieceLength))
 		})
+		t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1202...", p)
 		correct = sum == p.hashV2.Value
+		t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and p.hashV2.Value is: %v", correct, sum, p.hashV2.Value)
 	} else {
 		expected := p.mustGetOnlyFile().piecesRoot.Unwrap()
 		h := merkle.NewHash()
@@ -1201,7 +1207,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 		var sum [32]byte
 		// This is *not* padded to piece length.
 		sumExactly(sum[:], h.Sum)
+		t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1202...", p)
 		correct = sum == expected
+		t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and expected is: %v", correct, sum, expected)
 	}
 	return
 }
@@ -1564,7 +1572,9 @@ func (t *Torrent) maxHalfOpen() int {
 }
 
 func (t *Torrent) openNewConns() (initiated int) {
+	t.logger.Levelf(log.Debug, "#Floodix: Inside openNewConns() function")
 	defer t.updateWantPeersEvent()
+	t.logger.Levelf(log.Debug, "#Floodix: t.peers.Len(): %v", t.peers.Len())
 	for t.peers.Len() != 0 {
 		if !t.wantOutgoingConns() {
 			return
@@ -1594,6 +1604,7 @@ func (t *Torrent) openNewConns() (initiated int) {
 }
 
 func (t *Torrent) updatePieceCompletion(piece pieceIndex) bool {
+	t.logger.Levelf(log.Debug, "#Floodix: Inside updatePieceCompletion() function for piece: %v", piece)
 	p := t.piece(piece)
 	uncached := t.pieceCompleteUncached(piece)
 	cached := p.completion()
@@ -1602,9 +1613,12 @@ func (t *Torrent) updatePieceCompletion(piece pieceIndex) bool {
 	p.storageCompletionOk = uncached.Ok
 	x := uint32(piece)
 	if complete {
+		t.logger.Levelf(log.Debug, "#Floodix: Marking the piece p: %v on index x: %v as complete", piece, x)
 		t._completedPieces.Add(x)
+		t.logger.Levelf(log.Debug, "#Floodix: Opening connections with peers by calling t.openNewConns()")
 		t.openNewConns()
 	} else {
+		t.logger.Levelf(log.Debug, "#Floodix: Incomplete piece p: %v on index x: as complete", piece, x)
 		t._completedPieces.Remove(x)
 	}
 	p.t.updatePieceRequestOrderPiece(piece)
@@ -2367,6 +2381,7 @@ func (t *Torrent) SetMaxEstablishedConns(max int) (oldMax int) {
 }
 
 func (t *Torrent) pieceHashed(piece pieceIndex, passed bool, hashIoErr error) {
+	t.logger.Levelf(log.Debug, "#Floodix: Inside pieceHashed() function with args, pieceIndex: %v, passed: %v", piece, passed)
 	t.logger.LazyLog(log.Debug, func() log.Msg {
 		return log.Fstr("hashed piece %d (passed=%t)", piece, passed)
 	})
@@ -2397,6 +2412,7 @@ func (t *Torrent) pieceHashed(piece pieceIndex, passed bool, hashIoErr error) {
 	}()
 
 	if passed {
+		t.logger.Levelf(log.Debug, "#Floodix: Since passed is: %v branching into Line#2410..", passed)
 		if len(p.dirtiers) != 0 {
 			// Don't increment stats above connection-level for every involved connection.
 			t.allStats((*ConnStats).incrementPiecesDirtiedGood)
@@ -2421,7 +2437,9 @@ func (t *Torrent) pieceHashed(piece pieceIndex, passed bool, hashIoErr error) {
 		}
 		t.pendAllChunkSpecs(piece)
 	} else {
+		t.logger.Levelf(log.Debug, "#Floodix: Since passed is: %v branching into Line#2435..", passed)
 		if len(p.dirtiers) != 0 && p.allChunksDirty() && hashIoErr == nil {
+			t.logger.Levelf(log.Debug, "#Floodix: Inside len(p.dirtiers) != 0 && p.allChunksDirty() && hashIoErr == nil branch....")
 			// Peers contributed to all the data for this piece hash failure, and the failure was
 			// not due to errors in the storage (such as data being dropped in a cache).
 
@@ -2473,6 +2491,7 @@ func (t *Torrent) pieceHashed(piece pieceIndex, passed bool, hashIoErr error) {
 				}
 			}
 		}
+		t.logger.Levelf(log.Debug, "#Floodix: Since passed is %v piece is incomplete", passed)
 		t.onIncompletePiece(piece)
 		p.Storage().MarkNotComplete()
 	}
@@ -2584,10 +2603,12 @@ func (t *Torrent) dropBannedPeers() {
 }
 
 func (t *Torrent) pieceHasher(index pieceIndex) {
+	t.logger.Levelf(log.Debug, "#Floodix: Inside pieceHasher function...")
 	p := t.piece(index)
 	// Do we really need to spell out that it's a copy error? If it's a failure to hash the hash
 	// will just be wrong.
 	correct, failedPeers, copyErr := t.hashPiece(index)
+	t.logger.Levelf(log.Debug, "#Floodix value of correct is: %v failedPeers: %v copyErr: %v", correct, failedPeers, copyErr)
 	switch copyErr {
 	case nil, io.EOF:
 	default:
@@ -2609,6 +2630,7 @@ func (t *Torrent) pieceHasher(index pieceIndex) {
 		}
 	}
 	p.hashing = false
+	t.logger.Levelf(log.Debug, "#Floodix: Calling t.pieceHashed() from t.pieceHasher()  with correct %v", correct)
 	t.pieceHashed(index, correct, copyErr)
 	t.updatePiecePriority(index, "Torrent.pieceHasher")
 	t.activePieceHashes--
