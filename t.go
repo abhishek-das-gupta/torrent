@@ -1,6 +1,7 @@
 package torrent
 
 import (
+	"github.com/anacrolix/log"
 	"strconv"
 	"strings"
 
@@ -241,6 +242,7 @@ func (t *Torrent) Files() []*File {
 func (t *Torrent) AddPeers(pp []PeerInfo) (n int) {
 	t.cl.lock()
 	defer t.cl.unlock()
+	t.logger.Levelf(log.Debug, "#Floodix: Inside t.AddPeers() the peerInfos are %v", pp)
 	n = t.addPeers(pp)
 	return
 }

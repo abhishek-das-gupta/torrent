@@ -884,6 +884,7 @@ func (cl *Client) outgoingConnection(
 	opts outgoingConnOpts,
 	attemptKey outgoingConnAttemptKey,
 ) {
+	cl.logger.Levelf(log.Debug, "#Floodix: Inside outgoingConnection() %v")
 	c, err := cl.dialAndCompleteHandshake(opts)
 	if err == nil {
 		c.conn.SetWriteDeadline(time.Time{})
@@ -893,6 +894,12 @@ func (cl *Client) outgoingConnection(
 	// Don't release lock between here and addPeerConn, unless it's for failure.
 	cl.noLongerHalfOpen(opts.t, opts.peerInfo.Addr.String(), attemptKey)
 	if err != nil {
+		cl.logger.Levelf(
+			log.Debug,
+			"#Floodix: cl.noLongerHalfOpen(opts.t, opts.peerInfo.Addr.String(), attemptKey)  caused error with args: opts.t %v, opts.peerInfo.Addr.String(): %v, attemptKey %v",
+			opts.t,
+			opts.peerInfo.Addr.String(),
+			attemptKey)
 		if cl.config.Debug {
 			cl.logger.Levelf(
 				log.Debug,
