@@ -292,6 +292,7 @@ func (t *Torrent) pieceComplete(piece pieceIndex) bool {
 
 func (t *Torrent) pieceCompleteUncached(piece pieceIndex) storage.Completion {
 	if t.storage == nil {
+		t.logger.Levelf(log.Debug, "t.storage is nil. Hence setting the piece Completion for piece %v as not complete", piece)
 		return storage.Completion{Complete: false, Ok: true}
 	}
 	return t.pieces[piece].Storage().Completion()
@@ -1621,9 +1622,9 @@ func (t *Torrent) updatePieceCompletion(piece pieceIndex) bool {
 	p.storageCompletionOk = uncached.Ok
 	x := uint32(piece)
 	if complete {
-		t.logger.Levelf(log.Debug, "#Floodix: Marking the piece p: %v on index x: %v as complete", piece, x)
+		// t.logger.Levelf(log.Debug, "#Floodix: Marking the piece p: %v on index x: %v as complete", piece, x)
 		t._completedPieces.Add(x)
-		t.logger.Levelf(log.Debug, "#Floodix: Opening connections with peers by calling t.openNewConns()")
+		// t.logger.Levelf(log.Debug, "#Floodix: Opening connections with peers by calling t.openNewConns()")
 		t.openNewConns()
 	} else {
 		t.logger.Levelf(log.Debug, "#Floodix: Incomplete piece p: %v on index x: as complete", piece, x)
