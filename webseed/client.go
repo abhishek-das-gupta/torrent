@@ -72,6 +72,7 @@ func (ws *Client) NewRequest(r RequestSpec) Request {
 	ctx, cancel := context.WithCancel(context.Background())
 	var requestParts []requestPart
 	if !ws.fileIndex.Locate(r, func(i int, e segments.Extent) bool {
+		log.Printf("Inside Anon function")
 		req, err := newRequest(
 			ctx,
 			ws.Url, i, ws.info, e.Start, e.Length,

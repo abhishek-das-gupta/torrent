@@ -3,6 +3,7 @@ package webseed
 import (
 	"context"
 	"fmt"
+	"github.com/anacrolix/log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -55,10 +56,14 @@ func newRequest(
 ) (*http.Request, error) {
 	fileInfo := info.UpvertedFiles()[fileIndex]
 	if strings.HasSuffix(url_, "/") {
+		log.Printf("url: %s has / as suffix", url_)
 		// BEP specifies that we append the file path. We need to escape each component of the path
 		// for things like spaces and '#'.
+		log.Printf("calling trailingPath(%v, %v, %v)", info.BestName(), fileInfo.BestPath(), pathEscaper)
 		url_ += trailingPath(info.BestName(), fileInfo.BestPath(), pathEscaper)
+		log.Printf("url modified to: %s ", url_)
 	}
+	log.Printf("Creating HTTP GET request to url: %v", url_)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url_, nil)
 	if err != nil {
 		return nil, err
