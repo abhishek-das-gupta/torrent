@@ -331,13 +331,13 @@ func (t *Torrent) addPeer(p PeerInfo) (added bool) {
 	cl := t.cl
 	torrent.Add(fmt.Sprintf("peers added by source %q", p.Source), 1)
 	if t.closed.IsSet() {
-		t.logger.Levelf(log.Debug, "#Floodix: Torrent is closed. Hence %v not added", p.addr())
+		// t.logger.Levelf(log.Debug, "#Floodix: Torrent is closed. Hence %v not added", p.addr())
 		return false
 	}
 	if ipAddr, ok := tryIpPortFromNetAddr(p.Addr); ok {
 		if cl.badPeerIPPort(ipAddr.IP, ipAddr.Port) {
 			torrent.Add("peers not added because of bad addr", 1)
-			t.logger.Levelf(log.Debug, "#Floodix: Bad Ip %v and  port %v. Hence %v not added", ipAddr.IP, ipAddr.Port, p.addr())
+			// t.logger.Levelf(log.Debug, "#Floodix: Bad Ip %v and  port %v. Hence %v not added", ipAddr.IP, ipAddr.Port, p.addr())
 			// cl.logger.Printf("peers not added because of bad addr: %v", p)
 			return false
 		}
@@ -352,17 +352,17 @@ func (t *Torrent) addPeer(p PeerInfo) (added bool) {
 	} else {
 		added = true
 	}
-	t.logger.Levelf(log.Debug, "#Floodix: Opening connection with peer %v...", p.addr())
+	// t.logger.Levelf(log.Debug, "#Floodix: Opening connection with peer %v...", p.addr())
 	t.openNewConns()
 	for t.peers.Len() > cl.config.TorrentPeersHighWater {
-		t.logger.Levelf(log.Debug, "#Floodix: t.peer.Len(): %d is greater than cl.config.TorrentPeersHighWater:%d",
-			t.peers.Len(), cl.config.TorrentPeersHighWater)
+		// t.logger.Levelf(log.Debug, "#Floodix: t.peer.Len(): %d is greater than cl.config.TorrentPeersHighWater:%d",
+		//	t.peers.Len(), cl.config.TorrentPeersHighWater)
 		_, ok := t.peers.DeleteMin()
 		if ok {
 			torrent.Add("excess reserve peers discarded", 1)
 		}
 	}
-	t.logger.Levelf(log.Debug, "#Floodix: Final value of added: %v for peer %v", added, p.addr)
+	//t.logger.Levelf(log.Debug, "#Floodix: Final value of added: %v for peer %v", added, p.addr)
 	return
 }
 
@@ -1160,9 +1160,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 			var sum metainfo.Hash
 			// log.Printf("A piece decided to self-hash: %d", piece)
 			sum, err = i.SelfHash()
-			t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1162...", p)
+			//t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1162...", p)
 			correct = sum == *p.hash
-			t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and *p.hash is: %v", correct, sum, *p.hash)
+			//t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and *p.hash is: %v", correct, sum, *p.hash)
 			// Can't do smart banning without reading the piece. The smartBanCache is still cleared
 			// in pieceHasher regardless.
 			return
@@ -1186,9 +1186,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 		}
 		var sum [20]byte
 		sumExactly(sum[:], h.Sum)
-		t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1188...", p)
+		// t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1188...", p)
 		correct = sum == *p.hash
-		t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and *p.hash is: %v", correct, sum, *p.hash)
+		// t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and *p.hash is: %v", correct, sum, *p.hash)
 	} else if p.hashV2.Ok {
 		h := merkle.NewHash()
 		differingPeers, err = t.hashPieceWithSpecificHash(piece, h)
@@ -1199,9 +1199,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 		sumExactly(sum[:], func(b []byte) []byte {
 			return h.SumMinLength(b, int(t.info.PieceLength))
 		})
-		t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1202...", p)
+		// t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1202...", p)
 		correct = sum == p.hashV2.Value
-		t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and p.hashV2.Value is: %v", correct, sum, p.hashV2.Value)
+		// t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and p.hashV2.Value is: %v", correct, sum, p.hashV2.Value)
 	} else {
 		expected := p.mustGetOnlyFile().piecesRoot.Unwrap()
 		h := merkle.NewHash()
@@ -1209,9 +1209,9 @@ func (t *Torrent) hashPiece(piece pieceIndex) (
 		var sum [32]byte
 		// This is *not* padded to piece length.
 		sumExactly(sum[:], h.Sum)
-		t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1202...", p)
+		// t.logger.Levelf(log.Debug, "#Floodix: Inside hashPiece() function for piece %v  Line#1202...", p)
 		correct = sum == expected
-		t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and expected is: %v", correct, sum, expected)
+		// t.logger.Levelf(log.Debug, "#Floodix: Calculated correct: %v  where sum is: %v and expected is: %v", correct, sum, expected)
 	}
 	return
 }
@@ -1574,28 +1574,28 @@ func (t *Torrent) maxHalfOpen() int {
 }
 
 func (t *Torrent) openNewConns() (initiated int) {
-	t.logger.Levelf(log.Debug, "#Floodix: Inside openNewConns() function")
+	// t.logger.Levelf(log.Debug, "#Floodix: Inside openNewConns() function")
 	defer t.updateWantPeersEvent()
-	t.logger.Levelf(log.Debug, "#Floodix: t.peers.Len(): %v", t.peers.Len())
+	// t.logger.Levelf(log.Debug, "#Floodix: t.peers.Len(): %v", t.peers.Len())
 	for t.peers.Len() != 0 {
 		if !t.wantOutgoingConns() {
-			t.logger.Levelf(log.Debug, "#Floodix: torrent doesn't want outgoing connections since !t.wantOutgoingConns(): %v", !t.wantOutgoingConns())
+			// t.logger.Levelf(log.Debug, "#Floodix: torrent doesn't want outgoing connections since !t.wantOutgoingConns(): %v", !t.wantOutgoingConns())
 			return
 		}
 		if len(t.halfOpen) >= t.maxHalfOpen() {
-			t.logger.Levelf(log.Debug, "#Floodix: len(t.halfOpen) >= t.maxHalfOpen(): %v", len(t.halfOpen) >= t.maxHalfOpen())
+			// t.logger.Levelf(log.Debug, "#Floodix: len(t.halfOpen) >= t.maxHalfOpen(): %v", len(t.halfOpen) >= t.maxHalfOpen())
 			return
 		}
 		if len(t.cl.dialers) == 0 {
-			t.logger.Levelf(log.Debug, "#Floodix: len(t.cl.dialers) == 0: %v", len(t.cl.dialers) == 0)
+			// t.logger.Levelf(log.Debug, "#Floodix: len(t.cl.dialers) == 0: %v", len(t.cl.dialers) == 0)
 			return
 		}
 		if t.cl.numHalfOpen >= t.cl.config.TotalHalfOpenConns {
-			t.logger.Levelf(log.Debug, "#Floodix: t.cl.numHalfOpen >= t.cl.config.TotalHalfOpenConns : %v", t.cl.numHalfOpen >= t.cl.config.TotalHalfOpenConns)
+			// t.logger.Levelf(log.Debug, "#Floodix: t.cl.numHalfOpen >= t.cl.config.TotalHalfOpenConns : %v", t.cl.numHalfOpen >= t.cl.config.TotalHalfOpenConns)
 			return
 		}
 		p := t.peers.PopMax()
-		t.logger.Levelf(log.Debug, "#Floodix: t.peers.PopMax(): %v", p.addr())
+		// t.logger.Levelf(log.Debug, "#Floodix: t.peers.PopMax(): %v", p.addr())
 		opts := outgoingConnOpts{
 			peerInfo:                 p,
 			t:                        t,
@@ -1604,16 +1604,16 @@ func (t *Torrent) openNewConns() (initiated int) {
 			receivedHolepunchConnect: false,
 			HeaderObfuscationPolicy:  t.cl.config.HeaderObfuscationPolicy,
 		}
-		t.logger.Levelf(log.Debug, "#Floodix: initiating connection with peer %v with opts: %v", p.addr(), opts)
+		// t.logger.Levelf(log.Debug, "#Floodix: initiating connection with peer %v with opts: %v", p.addr(), opts)
 		initiateConn(opts, false)
 		initiated++
-		t.logger.Levelf(log.Debug, "#Floodix: Connection initiated with peer %v with opts: %v", p.addr(), opts)
+		// t.logger.Levelf(log.Debug, "#Floodix: Connection initiated with peer %v with opts: %v", p.addr(), opts)
 	}
 	return
 }
 
 func (t *Torrent) updatePieceCompletion(piece pieceIndex) bool {
-	t.logger.Levelf(log.Debug, "#Floodix: Inside updatePieceCompletion() function for piece: %v", piece)
+	// t.logger.Levelf(log.Debug, "#Floodix: Inside updatePieceCompletion() function for piece: %v", piece)
 	p := t.piece(piece)
 	uncached := t.pieceCompleteUncached(piece)
 	cached := p.completion()
@@ -1627,7 +1627,7 @@ func (t *Torrent) updatePieceCompletion(piece pieceIndex) bool {
 		// t.logger.Levelf(log.Debug, "#Floodix: Opening connections with peers by calling t.openNewConns()")
 		t.openNewConns()
 	} else {
-		t.logger.Levelf(log.Debug, "#Floodix: Incomplete piece p: %v on index x: as complete", piece, x)
+		// t.logger.Levelf(log.Debug, "#Floodix: Incomplete piece p: %v on index x: as complete", piece, x)
 		t._completedPieces.Remove(x)
 	}
 	p.t.updatePieceRequestOrderPiece(piece)
@@ -2728,33 +2728,33 @@ func initiateConn(
 	ignoreLimits bool,
 ) {
 	t := opts.t
-	t.logger.Levelf(log.Debug, "#Floodix: Inside initateConn() with opts: %v", opts)
+	// t.logger.Levelf(log.Debug, "#Floodix: Inside initateConn() with opts: %v", opts)
 	peer := opts.peerInfo
 	if peer.Id == t.cl.peerID {
-		t.logger.Levelf(log.Debug, "#Floodix: peer.Id == t.cl.peerID: %v since peer.Id = %v and peer.Id = %v", peer.Id == t.cl.peerID, peer.Id, t.cl.peerID)
+		// t.logger.Levelf(log.Debug, "#Floodix: peer.Id == t.cl.peerID: %v since peer.Id = %v and peer.Id = %v", peer.Id == t.cl.peerID, peer.Id, t.cl.peerID)
 		return
 	}
 	if t.cl.badPeerAddr(peer.Addr) && !peer.Trusted {
-		t.logger.Levelf(log.Debug, "#Floodix: peer.Addr is a bad peer and is not trusted")
+		// t.logger.Levelf(log.Debug, "#Floodix: peer.Addr is a bad peer and is not trusted")
 		return
 	}
 	addr := peer.Addr
 	addrStr := addr.String()
 	if !ignoreLimits {
-		t.logger.Levelf(log.Debug, "#Floodix: Not ignoring Limits since !ignoreLimits %v", !ignoreLimits)
+		// t.logger.Levelf(log.Debug, "#Floodix: Not ignoring Limits since !ignoreLimits %v", !ignoreLimits)
 		if t.connectingToPeerAddr(addrStr) {
-			t.logger.Levelf(log.Debug, "#Floodix: t.connectingToPeerAddr(%v): %v since len(t.halfOpen[addrStr]) = %v",
-				addrStr, t.connectingToPeerAddr(addrStr), len(t.halfOpen[addrStr]))
+			// t.logger.Levelf(log.Debug, "#Floodix: t.connectingToPeerAddr(%v): %v since len(t.halfOpen[addrStr]) = %v",
+			//	addrStr, t.connectingToPeerAddr(addrStr), len(t.halfOpen[addrStr]))
 			return
 		}
 	}
 	if t.hasPeerConnForAddr(addr) {
-		t.logger.Levelf(log.Debug, "#Floodix: torrent already has a connection for Addr: %v", addrStr)
+		// t.logger.Levelf(log.Debug, "#Floodix: torrent already has a connection for Addr: %v", addrStr)
 		return
 	}
 	attemptKey := &peer
 	t.addHalfOpen(addrStr, attemptKey)
-	t.logger.Levelf(log.Debug, "#Floodix: calling go t.cl.outgoingConnection(%v, %v)", opts, attemptKey)
+	// t.logger.Levelf(log.Debug, "#Floodix: calling go t.cl.outgoingConnection(%v, %v)", opts, attemptKey)
 	go t.cl.outgoingConnection(
 		opts,
 		attemptKey,

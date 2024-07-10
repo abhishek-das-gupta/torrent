@@ -72,7 +72,7 @@ func (ws *Client) NewRequest(r RequestSpec) Request {
 	ctx, cancel := context.WithCancel(context.Background())
 	var requestParts []requestPart
 	if !ws.fileIndex.Locate(r, func(i int, e segments.Extent) bool {
-		log.Printf("Inside Anon function")
+		log.Printf("#Floodix: Inside Anon function")
 		req, err := newRequest(
 			ctx,
 			ws.Url, i, ws.info, e.Start, e.Length,
@@ -86,6 +86,7 @@ func (ws *Client) NewRequest(r RequestSpec) Request {
 			e:                   e,
 			responseBodyWrapper: ws.ResponseBodyWrapper,
 		}
+		log.Printf("#Floodix: Request parts")
 		part.do = func() (*http.Response, error) {
 			return ws.HttpClient.Do(req)
 		}
