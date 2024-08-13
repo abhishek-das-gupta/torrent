@@ -146,6 +146,7 @@ func (ws *webseedPeer) handleUpdateRequests() {
 }
 
 func (ws *webseedPeer) onClose() {
+	panic("OPSAPS-71128: closing webseed!")
 	ws.peer.logger.Levelf(log.Debug, "closing")
 	// Just deleting them means we would have to manually cancel active requests.
 	ws.peer.cancelAllRequests()
